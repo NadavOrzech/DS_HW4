@@ -22,7 +22,9 @@ public:
 
     static int find_recurse(int pixel_id, int* parent);
     static Map_tree<int,int>* merge_trees(Map_tree<int,int>* tree1, Map_tree<int,int>* tree2);
-    static TreeNode<int,int>** tree_to_array(Map_tree<int,int>* tree);
+
+    static TreeNode<int,int>** tree_to_array(Map_tree<int,int>* tree);          //inserting tree to array by in-order scan
+    static void tree_to_array_recurse(TreeNode<int,int>* current, TreeNode<int,int>** array_to_fill, int index);
 };
 
 

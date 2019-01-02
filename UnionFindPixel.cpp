@@ -61,5 +61,18 @@ Map_tree<int,int>* UnionFindPixel::merge_trees(Map_tree<int,int>* tree1, Map_tre
 
 TreeNode<int,int>** UnionFindPixel::tree_to_array(Map_tree<int,int>* tree){
     TreeNode<int,int>** array = new TreeNode<int,int>*[tree->get_size()];
-
+    tree_to_array_recurse(tree->get_root(),array,0);
+    return array;
 };
+
+void UnionFindPixel::tree_to_array_recurse(TreeNode<int,int>* current,
+                                           TreeNode<int,int>** array_to_fill,
+                                           int index){
+    if(current == nullptr)
+        return;
+
+    tree_to_array_recurse(current->get_left_son(),array_to_fill,index);
+    array_to_fill[index]=current;
+    index++;
+    tree_to_array_recurse(current->get_right_son(),array_to_fill,index);
+}
