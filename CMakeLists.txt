@@ -11,4 +11,7 @@ add_library(ex4
         map_tree.h
         node_list.h
         UnionFindPixel.cpp
-        UnionFindPixel.h)
+        UnionFindPixel.h Image.cpp Image.h
+        Image.cpp
+        Image.h
+        main.cpp)

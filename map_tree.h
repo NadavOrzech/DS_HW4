@@ -394,7 +394,7 @@ void TreeNode<K,D>::update_max_score(){
     int score_left = this->get_left_son()->get_max_score();
     int score_right = this->get_right_son()->get_max_score();
 
-    if(score_left>score_right){
+    if(score_left>=score_right){                //?????
         this->set_max_score(score_left);
     } else {
         this->set_max_score(score_right);

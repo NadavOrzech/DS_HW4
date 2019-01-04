@@ -7,9 +7,11 @@
 
 #define ROOT -1
 
-UnionFindPixel::UnionFindPixel(int pixels) {
+UnionFindPixel::UnionFindPixel(int pixels):num_of_pixels(pixels) {
     this->size=new int[pixels];
     this->parent=new int[pixels];
+    this->labels=new Map_tree<int,int>*[pixels];
+
 
     for (int i = 0; i < pixels; i++) {
         this->size[i]=1;
@@ -18,7 +20,7 @@ UnionFindPixel::UnionFindPixel(int pixels) {
     }
 }
 
-int UnionFindPixel::Find(int pixel_ID) {
+int UnionFindPixel::find(int pixel_ID) {
     return find_recurse(pixel_ID,this->parent);
 }
 
@@ -33,20 +35,29 @@ int UnionFindPixel::find_recurse(int pixel_id, int* parent){
 }
 
 void UnionFindPixel:: Union(int pixel1, int pixel2){
-    int root1=Find(pixel1);
-    int root2=Find(pixel2);
+    int root1=find(pixel1);
+    int root2=find(pixel2);
+
+    Map_tree<int,int>* new_tree=merge_trees(labels[root1],labels[root2]);
+    delete labels[root1];
+    delete labels[root2];
+
 
     if (size[root1]>size[root2]){
         parent[root2]=root1;
         size[root1]+=size[root2];
         size[root2]=0;
+        labels[root1]=new_tree;
+        labels[root2]=new Map_tree<int,int>();// same as initialize, needs to be nullptr ??
     }
     else{
         parent[root1]=root2;
         size[root2]+=size[root1];
         size[root1]=0;
+        labels[root2]=new_tree;
+        labels[root1]=new Map_tree<int,int>(); // same as initialize, needs to be nullptr ??
     }
-
+//????????????? - needs to merge trees - assumption: only parent of superpixel have a label tree
 }
 
 
@@ -56,6 +67,9 @@ Map_tree<int,int>* UnionFindPixel::merge_trees(Map_tree<int,int>* tree1, Map_tre
     TreeNode<int,int>** array2=tree_to_array(tree2);
 
     TreeNode<int,int>** full_array=merge_arrays(array1,tree1->get_size(),array2,tree2->get_size());
+    delete array1;
+    delete array2;
+
     Map_tree<int,int>* new_tree=build_complete_tree(full_array,(tree1->get_size()+tree2->get_size()));
     insert_array_to_tree(new_tree,full_array);
 
@@ -103,7 +117,7 @@ TreeNode<int,int>** UnionFindPixel::merge_arrays(TreeNode<int,int>** array1,int 
 }
 
 Map_tree<int,int>* UnionFindPixel::build_complete_tree(TreeNode<int,int>** array, int size){
-    int height = log2(size);
+    int height = log2(size);                                                    //need to check complexity of log2??
     Map_tree<int,int>* empty_tree= new Map_tree<int,int>();
     empty_tree->set_root(build_recurse(empty_tree->get_root(),height));
 
@@ -113,7 +127,7 @@ Map_tree<int,int>* UnionFindPixel::build_complete_tree(TreeNode<int,int>** array
 };
 
 TreeNode<int,int>* UnionFindPixel::build_recurse(TreeNode<int,int>* current, int height){
-    if(height<0){                        //need < or <= ??
+    if(height<0){                        //need < or <= ?? VV
         return nullptr;
     }
     TreeNode<int,int>* new_node= new TreeNode<int,int>(0,0);
@@ -170,6 +184,8 @@ void UnionFindPixel::insert_array_to_tree_recurse(TreeNode<int,int>* current,Tre
     current->set_height();                  //verify correct place to update height...
 }
 
+
+
 void UnionFindPixel::update_max_score_recurse(TreeNode<int,int>* current){
     if(current->get_height()==0){
         current->set_max_score(current->get_data());
@@ -181,3 +197,72 @@ void UnionFindPixel::update_max_score_recurse(TreeNode<int,int>* current){
     current->update_max_score();
 
 }
+
+bool UnionFindPixel::set_score_to_label(int pixel, int label, int score){
+    int super_pixel=this->find(pixel);
+    auto label_ptr = this->labels[super_pixel]->find(label);
+
+    if(label_ptr == nullptr) {
+        this->labels[super_pixel]->add_node(label, score);
+        return false;
+    }
+
+    label_ptr->set_data(score);
+    return true;
+}
+
+bool UnionFindPixel::delete_label(int pixel, int label){
+    int super_pixel=this->find(pixel);
+    auto label_ptr = this->labels[super_pixel]->find(label);
+
+    if(label_ptr == nullptr)
+        return false;
+
+    this->labels[super_pixel]->remove_node(label_ptr);
+    return true;
+
+}
+
+ostream& UnionFindPixel::printUnionFind(ostream& os) {
+    os << "Index:  | ";
+    for (int i = 0; i < this->num_of_pixels; i++)
+        os << (i) << " | ";
+    os << endl;
+
+    os << "Size:   | ";
+    for (int i = 0; i < this->num_of_pixels; i++)
+        os << this->size[i] << " | ";
+    os << endl;
+
+    os << "Parent: | ";
+    for (int i = 0; i < this->num_of_pixels; i++){
+        if (this->parent[i] == ROOT)
+            os << "- | ";
+        else {
+            os << this->parent[i] << " | ";
+        }
+    }
+    os << endl;
+
+    os << "Labels: " << endl;
+    for (int i = 0; i < this->num_of_pixels; i++)
+        this->labels[i]->printTree(os);
+    os << endl;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
