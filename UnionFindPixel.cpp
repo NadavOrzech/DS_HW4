@@ -104,51 +104,80 @@ TreeNode<int,int>** UnionFindPixel::merge_arrays(TreeNode<int,int>** array1,int 
 
 Map_tree<int,int>* UnionFindPixel::build_complete_tree(TreeNode<int,int>** array, int size){
     int height = log2(size);
-    Map_tree<int,int>* empty_tree= build_recurse(empty_tree->get_root(),height);
+    Map_tree<int,int>* empty_tree= new Map_tree<int,int>();
+    empty_tree->set_root(build_recurse(empty_tree->get_root(),height));
 
     int num_to_delete = exp2(height)-size;
     delete_right_leaves(empty_tree,num_to_delete,height);
 
 };
 
-Map_tree<int,int>* UnionFindPixel::build_recurse(TreeNode<int,int>* current, int height){
-    if(h<0){                        //need < or <= ??
+TreeNode<int,int>* UnionFindPixel::build_recurse(TreeNode<int,int>* current, int height){
+    if(height<0){                        //need < or <= ??
         return nullptr;
     }
-    TreeNode<int,int>* new_node= new TreeNode<int,int>*(0,0);
-    current->set_left_son(build_recurse(current->get_left_son()),h-1);
-    current->set_right_son(build_recurse(current->get_right_son()),h-1);
+    TreeNode<int,int>* new_node= new TreeNode<int,int>(0,0);
+    current->set_left_son(build_recurse(current->get_left_son(),height-1));
+    current->set_right_son(build_recurse(current->get_right_son(),height-1));
     return new_node;
 };
 
 void UnionFindPixel::delete_right_leaves(Map_tree<int,int>* tree, int num_to_delete, int height){
     TreeNode<int,int>* current=tree->get_root();
-    int height = log2(tree->get_size());
-    delete_right_leaves_recurse(tree->get_root(),*num_to_delete,height);
+    delete_right_leaves_recurse(tree->get_root(),&num_to_delete,height);
 
 }
 
 void UnionFindPixel::delete_right_leaves_recurse(TreeNode<int,int>* current, int* num_to_delete, int height){
-    if(height==0 || *num_to_delete<=0){
+    if(height==0 || num_to_delete<=0){
         return;
     }
 
-    delete_right_leaves_recurse(current->get_right_son(),*num_to_delete,height-1);
-    if(*num_to_delete>0 && height==1){
+    delete_right_leaves_recurse(current->get_right_son(),num_to_delete,height-1);       //does num_to_delete need * before the name?
+    if((*num_to_delete)>0 && height==1){
         delete current->get_right_son();
         current->set_right_son(nullptr);
-        *num_to_delete--;
+        (*num_to_delete)--;
     }
 
-    delete_right_leaves_recurse(current->get_left_son(),*num_to_delete,height-1);
-    if(*num_to_delete>0 && height==1){
+    delete_right_leaves_recurse(current->get_left_son(),num_to_delete,height-1);
+    if((*num_to_delete)>0 && height==1){
         delete current->get_left_son();
         current->set_left_son(nullptr);
-        *num_to_delete--;
+        (*num_to_delete)--;
     }
 
 }
 
 void UnionFindPixel::insert_array_to_tree(Map_tree<int,int>* tree,TreeNode<int,int>** array){
+    int index=0;
+    int height = log2(tree->get_size());
+    insert_array_to_tree_recurse(tree->get_root(),array,index,height);
+    update_max_score_recurse(tree->get_root());
+}
+
+void UnionFindPixel::insert_array_to_tree_recurse(TreeNode<int,int>* current,TreeNode<int,int>** array, int index, int height){
+    if(height<0){
+        return;
+    }
+    insert_array_to_tree_recurse(current->get_left_son(),array,index,height-1);
+    current->set_key(array[index]->get_key());
+    current->set_data(array[index]->get_data());
+    index++;
+
+    insert_array_to_tree_recurse(current->get_right_son(),array,index,height-1);
+
+    current->set_height();                  //verify correct place to update height...
+}
+
+void UnionFindPixel::update_max_score_recurse(TreeNode<int,int>* current){
+    if(current->get_height()==0){
+        current->set_max_score(current->get_data());
+        return;
+    }
+    update_max_score_recurse(current->get_left_son());
+    update_max_score_recurse(current->get_right_son());
+
+    current->update_max_score();
 
 }

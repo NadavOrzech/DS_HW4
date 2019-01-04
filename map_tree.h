@@ -43,6 +43,31 @@ public:
     D& get_data();
 
 /*
+ * Description: sets the node's key
+ * Input:   the key to set
+ * Output:  none.
+ */
+    void set_key(K key);
+
+/*
+ * Description: sets the node's data
+ * Input:   the data to ser.
+ * Output:  none
+ */
+    void set_data(D data);
+
+/*
+ * Description: sets the node's max_score
+ * Input:   the score to set.
+ * Output:  none
+ */
+    void set_max_score(int score);
+
+    int get_max_score();
+
+    void update_max_score();
+
+/*
  * Description: gets the node's height
  * Input:   none.
  * Output:  the node's height
@@ -342,6 +367,38 @@ const K& TreeNode<K,D>::get_key() {
 template <class K, class D>
 D& TreeNode<K,D>::get_data() {
     return this->data;
+}
+
+template <class K, class D>
+void TreeNode<K,D>::set_key(K key) {
+    this->key=key;
+}
+
+template <class K, class D>
+void TreeNode<K,D>::set_data(D data) {
+    this->data=data;
+}
+
+template <class K, class D>
+void TreeNode<K,D>::set_max_score(int score){
+    this->max_score=score;
+}
+
+template <class K, class D>
+int TreeNode<K,D>::get_max_score(){
+    return this->max_score;
+}
+
+template <class K, class D>
+void TreeNode<K,D>::update_max_score(){
+    int score_left = this->get_left_son()->get_max_score();
+    int score_right = this->get_right_son()->get_max_score();
+
+    if(score_left>score_right){
+        this->set_max_score(score_left);
+    } else {
+        this->set_max_score(score_right);
+    }
 }
 
 template <class K, class D>
